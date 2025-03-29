@@ -1,0 +1,31 @@
+-- CreateTable
+CREATE TABLE "Lot" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "timeInSec" INTEGER NOT NULL,
+    "startPriceInCents" INTEGER NOT NULL,
+    "minPriceStep" INTEGER NOT NULL DEFAULT 1,
+    "maxPriceStep" INTEGER NOT NULL DEFAULT 50000,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Lot_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Bid" (
+    "id" SERIAL NOT NULL,
+    "value" INTEGER NOT NULL,
+    "lotId" INTEGER NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Bid_pkey" PRIMARY KEY ("id")
+);
+
+-- AddForeignKey
+ALTER TABLE "Bid" ADD CONSTRAINT "Bid_lotId_fkey" FOREIGN KEY ("lotId") REFERENCES "Lot"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Bid" ADD CONSTRAINT "Bid_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
