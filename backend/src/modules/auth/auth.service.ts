@@ -43,13 +43,19 @@ export class AuthService {
     const user = await prismaClient.user.findUnique({ where: { email } });
 
     if (!user) {
-      throw new BadRequestException("No such user or password incorrect");
+      throw new BadRequestException(
+        "Wrong credentials",
+        "No such user or password incorrect",
+      );
     }
 
     const hashedPassword = this.hashPassword(password, user.salt);
 
     if (user.hashedPassword !== hashedPassword) {
-      throw new BadRequestException("No such user or password incorrect");
+      throw new BadRequestException(
+        "Wrong credentials",
+        "No such user or password incorrect",
+      );
     }
 
     return this.generateTokensPair({ sub: user.id });

@@ -86,7 +86,7 @@ export default function LotModal({ lotId, setLotId }: LotModalProps) {
                 component="h2"
                 sx={{ mb: 2 }}
               >
-                Bids for lot {data?.name || ""}
+                Lot {data?.name || ""}
               </Typography>
               {!isClosed && timeLeft > 0 && (
                 <Typography paddingTop={1} fontSize={14} color={"primary"}>

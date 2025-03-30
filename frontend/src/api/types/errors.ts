@@ -1,7 +1,7 @@
 // standard error from backend
 export type ServerErrorResponse = {
+  details: string;
   message: string;
-  error: string;
   statusCode: number;
 };
 
@@ -18,10 +18,10 @@ export class GeneralError extends Error {
       this.message = e;
       this.details = e;
     } else {
-      super(e?.error || "Unknown error");
+      super(e?.message || "Unknown error");
       this.status = e?.statusCode || 500;
-      this.message = e?.error || "Unknown error";
-      this.details = e?.message || "Something went wrong";
+      this.message = e?.message || "Unknown error";
+      this.details = e?.details || "Something went wrong";
     }
   }
 }

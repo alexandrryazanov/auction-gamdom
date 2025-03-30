@@ -7,6 +7,7 @@ import { Paper } from "@mui/material";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
+import { GeneralError } from "@/api/types/errors.ts";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -70,7 +71,9 @@ const LoginPage = () => {
             Login
           </Button>
           {serverError && (
-            <Typography color={"red"}>{serverError.message}</Typography>
+            <Typography color={"red"}>
+              {(serverError as GeneralError).details}
+            </Typography>
           )}
         </Paper>
       </form>
