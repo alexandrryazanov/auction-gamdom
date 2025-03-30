@@ -37,7 +37,12 @@ export class LotsService {
       throw new NotFoundException("lot", id);
     }
 
-    return lot;
+    const currentDuration = Math.floor(
+      (new Date().getTime() - new Date(lot.createdAt).getTime()) / 1000,
+    );
+    const timeLeft = lot.timeInSec - currentDuration;
+
+    return { ...lot, timeLeft };
   }
 
   async create(dto: LotCreateDto) {

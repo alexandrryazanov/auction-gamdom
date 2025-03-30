@@ -9,12 +9,13 @@ import Button from "@mui/material/Button";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { io as socketIO, Socket } from "socket.io-client";
 import BidsTable from "@/components/BidsTable";
-import { Bid, Status } from "@/api/rest/lots/types.ts";
+import { Bid, Status } from "@/api/rest/lots/all/types.ts";
 import { useLot } from "@/api/rest/lots/one/hook.ts";
 import { TOKEN_KEY } from "@/constants/localStorage.ts";
 import { User } from "@/api/rest/users/me/types.ts";
 import { useQueryClient } from "@tanstack/react-query";
 import { LOTS_QUERY_KEY } from "@/api/rest/lots/constants.ts";
+import { formatTime } from "@/components/LotModal/utils.ts";
 
 const style = {
   position: "absolute",
@@ -34,13 +35,25 @@ export default function LotModal({ lotId, setLotId }: LotModalProps) {
   const [error, setError] = useState("");
   const [value, setValue] = useState("");
   const [winnerFromSockets, setWinnerFromSockets] = useState<User | null>(null);
+  const [statusFromSockets, setStatusFromSockets] = useState<Status>(
+    Status.OPEN,
+  );
   const queryClient = useQueryClient();
+  const [timeLeft, setTimeLeft] = useState<number>(0);
 
   const handleClose = () => setLotId(null);
 
   // TODO: create separated hook for sockets
   useEffect(() => {
-    if (!lotId || !data) return;
+    if (!lotId || !data || data.status === Status.CLOSED) return;
+
+    setTimeLeft(data.timeLeft);
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 0) clearInterval(timer);
+        return prev - 1;
+      });
+    }, 1000);
 
     socket.current = socketIO(import.meta.env.VITE_BACKEND_BASE_URL, {
       path: "/ws",
@@ -54,24 +67,28 @@ export default function LotModal({ lotId, setLotId }: LotModalProps) {
       socket.current?.on("error", setError);
       socket.current?.on("lot", console.log);
       socket.current?.on("bid:placed", setBids);
-      socket.current?.on("lot:ended", (data) =>
-        setWinnerFromSockets(data.winner),
-      );
+      socket.current?.on("lot:ended", (data) => {
+        setStatusFromSockets(Status.CLOSED);
+        setWinnerFromSockets(data.winner);
+      });
     });
 
     return () => {
+      clearInterval(timer);
       setBids([]);
       setError("");
       socket.current?.disconnect();
     };
   }, [lotId, data]);
 
+  const isClosed =
+    data?.status === Status.CLOSED || statusFromSockets === Status.CLOSED;
   const winner = winnerFromSockets || data?.winner || null;
 
   useEffect(() => {
-    if (!winner) return;
+    if (!isClosed) return;
     queryClient.refetchQueries({ queryKey: [LOTS_QUERY_KEY] }); // update lots
-  }, [winner, queryClient]);
+  }, [isClosed, queryClient]);
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -80,40 +97,39 @@ export default function LotModal({ lotId, setLotId }: LotModalProps) {
   };
 
   return (
-    <div>
-      <Modal
-        aria-labelledby="transition-modal-title"
-        aria-describedby="transition-modal-description"
-        open={!!lotId}
-        onClose={handleClose}
-        closeAfterTransition
-        slots={{ backdrop: Backdrop }}
-        slotProps={{
-          backdrop: {
-            timeout: 500,
-          },
-        }}
-      >
-        <Fade in={!!lotId}>
-          <Box sx={style}>
+    <Modal
+      aria-labelledby="modal-title"
+      open={!!lotId}
+      onClose={handleClose}
+      closeAfterTransition
+      slots={{ backdrop: Backdrop }}
+      slotProps={{
+        backdrop: {
+          timeout: 500,
+        },
+      }}
+    >
+      <Fade in={!!lotId}>
+        <Box sx={style}>
+          <Box sx={{ display: "flex", justifyContent: "space-between" }}>
             <Typography
-              id="transition-modal-title"
+              id="modal-title"
               variant="h6"
               component="h2"
               sx={{ mb: 2 }}
             >
               Bids for lot {data?.name || ""}
             </Typography>
+            {!isClosed && timeLeft > 0 && (
+              <Typography paddingTop={1} fontSize={14} color={"primary"}>
+                {formatTime(timeLeft)}
+              </Typography>
+            )}
+          </Box>
 
-            {!winner && (
+          {!isClosed && !winner ? (
+            <>
               <BidsTable data={bids} error={error} isLoading={false} />
-            )}
-
-            {winner && (
-              <Typography color={"success"}>Winner: {winner.email}</Typography>
-            )}
-
-            {data?.status !== Status.CLOSED && !winner && (
               <form onSubmit={onSubmit}>
                 <Box sx={{ mt: 3, flex: 1, display: "flex", gap: 1 }}>
                   <TextField
@@ -135,10 +151,14 @@ export default function LotModal({ lotId, setLotId }: LotModalProps) {
                   </Button>
                 </Box>
               </form>
-            )}
-          </Box>
-        </Fade>
-      </Modal>
-    </div>
+            </>
+          ) : (
+            <Typography color={"success"}>
+              {winner ? `Winner: ${winner?.email}` : "No winner"}
+            </Typography>
+          )}
+        </Box>
+      </Fade>
+    </Modal>
   );
 }

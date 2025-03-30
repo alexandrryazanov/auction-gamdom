@@ -1,4 +1,4 @@
-import { Bid } from "@/api/rest/lots/types.ts";
+import { Bid } from "@/api/rest/lots/all/types.ts";
 
 export interface BidsTableProps {
   data: Bid[];

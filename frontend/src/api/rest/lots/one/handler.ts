@@ -1,6 +1,6 @@
 import { GET_LOTS_PATH } from "../constants.ts";
-import { Lot } from "../types.ts";
 import { authApiClient } from "@/api/instances/auth";
+import { LotFullInfo } from "@/api/rest/lots/one/types.ts";
 
 export async function getLotById({
   signal,
@@ -9,8 +9,8 @@ export async function getLotById({
   signal: AbortSignal;
   id: number | null;
 }) {
-  if (!id) return {} as Lot;
-  const res = await authApiClient.get<Lot>(`${GET_LOTS_PATH}/${id}`, {
+  if (!id) return {} as LotFullInfo;
+  const res = await authApiClient.get<LotFullInfo>(`${GET_LOTS_PATH}/${id}`, {
     signal,
   });
 
