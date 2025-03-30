@@ -13,7 +13,7 @@ const PORT = 8080;
 
 // middlewares
 app.use(express.json());
-app.use(cors());
+app.use(cors({ credentials: true, origin: "http://localhost:5173" }));
 
 // handle all controllers
 controllers.forEach((controller) => {

@@ -10,11 +10,22 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import LotModal from "@/components/LotModal";
+import { useUser } from "@/api/rest/users/me/hook.ts";
+import { toast } from "react-toastify";
 
 const LotsTable = () => {
+  const { data: user } = useUser();
   const [selectedLotId, setSelectedLotId] = useState<number | null>(null);
   const { data } = useLots({ limit: 10, offset: 0 }); // TODO: add pagination handle
   if (!data) return null;
+
+  const onLotClick = (lotId: number) => {
+    if (!user) {
+      toast("You have to be log in!", { type: "error" });
+      return;
+    }
+    setSelectedLotId(lotId);
+  };
 
   return (
     <>
@@ -33,7 +44,7 @@ const LotsTable = () => {
               <TableRow
                 key={lot.id}
                 sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                onClick={() => setSelectedLotId(lot.id)}
+                onClick={() => onLotClick(lot.id)}
               >
                 <TableCell align="right">{lot.id}</TableCell>
                 <TableCell align="right">{lot.name}</TableCell>

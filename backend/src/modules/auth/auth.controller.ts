@@ -63,5 +63,6 @@ export class AuthController {
       httpOnly: true,
       secure: false, // TODO: add for prod
     });
+    response.send({});
   };
 }
