@@ -28,6 +28,7 @@ const useBidsSocket = ({
     });
 
     socket.current.on("connect", () => {
+      console.log(`Connected to lot ${lotId}`);
       socket.current?.on("error", setError);
       socket.current?.on("lot", console.log);
       socket.current?.on("bid:placed", setBids);
@@ -40,7 +41,11 @@ const useBidsSocket = ({
     return () => {
       setBids([]);
       setError("");
+      setStatus(Status.OPEN);
+      setWinner(null);
       socket.current?.disconnect();
+      socket.current = null;
+      console.log(`Disconnected from lot ${lotId}`);
     };
   }, [lotId, skip]);
 
