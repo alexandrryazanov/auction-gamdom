@@ -10,11 +10,14 @@ import { LotsWorkers } from "@/modules/lots/lots.workers";
 import { AuthService } from "@/modules/auth/auth.service";
 import { AuthController } from "@/modules/auth/auth.controller";
 
-// services
+// services and workers
 const usersService = new UsersService();
 const authService = new AuthService();
 const bidsService = new BidsService();
-const lotsService = new LotsService();
+const lotsWorkers = new LotsWorkers(bidsService);
+const lotsService = new LotsService(lotsWorkers);
+
+void new LotsWorkers(bidsService).initAllWorkers();
 
 // controllers
 export const controllers = [
@@ -29,6 +32,3 @@ export const listeners = [
   new LotsListener(),
   new BidsListener(),
 ];
-
-// workers
-void new LotsWorkers(bidsService).initAllWorkers();

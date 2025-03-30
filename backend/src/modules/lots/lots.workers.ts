@@ -1,6 +1,6 @@
 import { Lot, Status } from "@prisma/client";
 import { Queue, Worker } from "bullmq";
-import { REDIS_CONFIGURATION } from "@/modules/redis/redis.client";
+import redisClient, { REDIS_CONFIGURATION } from "@/modules/redis/redis.client";
 import prismaClient from "@/modules/prisma/prisma.client";
 import { BidsService } from "@/modules/bids/bids.service";
 import { io } from "@/modules/sockets/sockets.client";
@@ -21,7 +21,7 @@ export class LotsWorkers {
     }
   }
 
-  private async addBidsWorker(lot: Lot) {
+  async addBidsWorker(lot: Lot) {
     console.log("Worker init for", lot.id);
     new Worker(
       `lot-${lot.id}`,
@@ -39,7 +39,7 @@ export class LotsWorkers {
     );
   }
 
-  private async addEndWorker(lot: Lot) {
+  async addEndWorker(lot: Lot) {
     const lotsQueue = new Queue("lots-queue", {
       connection: REDIS_CONFIGURATION,
     });
@@ -58,14 +58,26 @@ export class LotsWorkers {
       async (job) => {
         const { lotId } = job.data;
 
-        const updated = await prismaClient.lot.updateMany({
+        // Calc the winner
+        const lotName = `lot-${lotId}`;
+        const lotBidsString = await redisClient?.get(lotName);
+        const lotBids = JSON.parse(lotBidsString || "[]") as {
+          value: number;
+          userId: number;
+          email: string;
+        }[];
+
+        const winnerId = lotBids[0]?.userId || null;
+
+        const updated = await prismaClient.lot.update({
           where: { id: lotId, status: Status.OPEN },
-          data: { status: Status.CLOSED },
+          data: { status: Status.CLOSED, winnerId },
+          include: { winner: { select: { id: true, email: true } } },
         });
 
-        if (updated.count > 0) {
+        if (updated) {
           console.log(`Lot ${lotId} is finished.`);
-          io?.to(String(lotId)).emit(`lot:ended`);
+          io?.to(String(lotId)).emit(`lot:ended`, { winner: updated.winner });
         } else {
           console.log(`Lot ${lotId} is already finished.`);
         }

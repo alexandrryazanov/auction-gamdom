@@ -12,6 +12,9 @@ import BidsTable from "@/components/BidsTable";
 import { Bid, Status } from "@/api/rest/lots/types.ts";
 import { useLot } from "@/api/rest/lots/one/hook.ts";
 import { TOKEN_KEY } from "@/constants/localStorage.ts";
+import { User } from "@/api/rest/users/me/types.ts";
+import { useQueryClient } from "@tanstack/react-query";
+import { LOTS_QUERY_KEY } from "@/api/rest/lots/constants.ts";
 
 const style = {
   position: "absolute",
@@ -30,6 +33,8 @@ export default function LotModal({ lotId, setLotId }: LotModalProps) {
   const [bids, setBids] = useState<Bid[]>([]);
   const [error, setError] = useState("");
   const [value, setValue] = useState("");
+  const [winnerFromSockets, setWinnerFromSockets] = useState<User | null>(null);
+  const queryClient = useQueryClient();
 
   const handleClose = () => setLotId(null);
 
@@ -49,7 +54,9 @@ export default function LotModal({ lotId, setLotId }: LotModalProps) {
       socket.current?.on("error", setError);
       socket.current?.on("lot", console.log);
       socket.current?.on("bid:placed", setBids);
-      socket.current?.on("lot:ended", console.log);
+      socket.current?.on("lot:ended", (data) =>
+        setWinnerFromSockets(data.winner),
+      );
     });
 
     return () => {
@@ -58,6 +65,13 @@ export default function LotModal({ lotId, setLotId }: LotModalProps) {
       socket.current?.disconnect();
     };
   }, [lotId, data]);
+
+  const winner = winnerFromSockets || data?.winner || null;
+
+  useEffect(() => {
+    if (!winner) return;
+    queryClient.refetchQueries({ queryKey: [LOTS_QUERY_KEY] }); // update lots
+  }, [winner, queryClient]);
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -91,9 +105,15 @@ export default function LotModal({ lotId, setLotId }: LotModalProps) {
               Bids for lot {data?.name || ""}
             </Typography>
 
-            <BidsTable data={bids} error={error} isLoading={false} />
+            {!winner && (
+              <BidsTable data={bids} error={error} isLoading={false} />
+            )}
 
-            {(!data || data?.status !== Status.CLOSED) && (
+            {winner && (
+              <Typography color={"success"}>Winner: {winner.email}</Typography>
+            )}
+
+            {data?.status !== Status.CLOSED && !winner && (
               <form onSubmit={onSubmit}>
                 <Box sx={{ mt: 3, flex: 1, display: "flex", gap: 1 }}>
                   <TextField
@@ -109,6 +129,7 @@ export default function LotModal({ lotId, setLotId }: LotModalProps) {
                     variant={"contained"}
                     type={"submit"}
                     sx={{ minWidth: 130 }}
+                    disabled={value.length === 0}
                   >
                     Place bid
                   </Button>

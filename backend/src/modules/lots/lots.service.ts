@@ -7,8 +7,11 @@ import { Status } from "@prisma/client";
 import { LotCreateDto } from "@/modules/lots/dto/lot-create.dto";
 import { LotGetAllDto } from "@/modules/lots/dto/lot-get-all.dto";
 import { LotUpdateDto } from "@/modules/lots/dto/lot-update.dto";
+import { LotsWorkers } from "@/modules/lots/lots.workers";
 
 export class LotsService {
+  constructor(private readonly lotsWorkers: LotsWorkers) {}
+
   async getAll({ limit = 10, offset = 0 }: LotGetAllDto) {
     return prismaClient.lot.findMany({
       take: limit,
@@ -20,6 +23,14 @@ export class LotsService {
   async getById(id: number) {
     const lot = await prismaClient.lot.findUnique({
       where: { id },
+      include: {
+        winner: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+      },
     });
 
     if (!lot) {
@@ -30,7 +41,7 @@ export class LotsService {
   }
 
   async create(dto: LotCreateDto) {
-    return prismaClient.lot.create({
+    const lot = await prismaClient.lot.create({
       data: {
         startPriceInCents: dto.startPriceInCents,
         minPriceStep: dto.minPriceStep,
@@ -39,6 +50,11 @@ export class LotsService {
         timeInSec: dto.timeInSec,
       },
     });
+
+    await this.lotsWorkers.addBidsWorker(lot);
+    await this.lotsWorkers.addEndWorker(lot);
+
+    return lot;
   }
 
   async updateById(id: number, dto: LotUpdateDto) {

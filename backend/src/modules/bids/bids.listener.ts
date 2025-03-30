@@ -20,6 +20,7 @@ export class BidsListener implements ExpressListener {
       const bidsQueue = getBidsQueue(lotId);
       console.log("Send bid to queue");
       await bidsQueue.add("bid", { lotId, ...data, socketId: socket.id });
+      console.log("sent to queue");
     } catch (e) {
       socket.emit("error", e.message);
     }
