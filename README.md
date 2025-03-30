@@ -38,7 +38,7 @@ docker compose up
 Copy env file from .env.example
 
 ```sh
-cp .env.exsample .env
+cp .env.example .env
 ```
 
 Node version, node modules
