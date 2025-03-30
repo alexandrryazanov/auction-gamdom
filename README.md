@@ -3,7 +3,7 @@
 ## What is implemented
 - Custom architecture with services/controllers and OOP principles
 - Postgres DB for storing users and lots
-- Redis for storing bids (super fast)
+- Redis for storing bids
 - bullMQ for creating queues for every lot
 - socket.io for real-time bids updates
 - JWT auth with access/refresh tokens
@@ -19,6 +19,7 @@
 - tests
 - remake timer (now can be delayed)
 - Maybe save all bids in PG in the end of auction for stats
+- admin role + middleware to protect some routes 
 
 # Backend
 ## Install and start
