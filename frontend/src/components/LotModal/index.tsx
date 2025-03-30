@@ -15,9 +15,12 @@ import { formatTime } from "@/components/LotModal/utils.ts";
 import useBidsSocket from "@/hooks/useBidsSocket.ts";
 import useTimeLeft from "@/hooks/useTimeLeft.ts";
 import { CircularProgress } from "@mui/material";
+import { toast } from "react-toastify";
+import { useUser } from "@/api/rest/users/me/hook.ts";
 
 export default function LotModal({ lotId, setLotId }: LotModalProps) {
   const queryClient = useQueryClient();
+  const { data: user } = useUser();
   const { data, isLoading } = useLot({ id: lotId });
   const [value, setValue] = useState("");
 
@@ -53,6 +56,11 @@ export default function LotModal({ lotId, setLotId }: LotModalProps) {
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
+
+    if (Number(value) <= 0) {
+      toast("Enter correct bid", { type: "error" });
+    }
+
     emit("bid", { value });
   };
 
@@ -112,7 +120,7 @@ export default function LotModal({ lotId, setLotId }: LotModalProps) {
                       size="small"
                       value={value}
                       onChange={(e) => setValue(e.target.value)}
-                      placeholder={"Your Bid In cents"}
+                      placeholder={"Your bid in cents"}
                     />
                     <Button
                       variant={"contained"}
@@ -127,7 +135,9 @@ export default function LotModal({ lotId, setLotId }: LotModalProps) {
               </>
             ) : (
               <Typography color={"success"}>
-                {winner ? `Winner: ${winner?.email}` : "No winner"}
+                {winner
+                  ? `Winner: ${winner?.email === user?.email ? "you. Congratulate!" : winner.email}`
+                  : "No winner"}
               </Typography>
             )}
           </>

@@ -15,15 +15,16 @@
 - MUI lib interface
 - Axios interceptors for auth/non-auth users + invisible token refresh
 - Custom hook for interaction with sockets
+- Seed database with 3 users and 3 lots (2/4/6 minutes)
 
-## What is needed to add
+## What is needed to implement
 - some spinners/skeletons
-- some error handlers/descriptions
 - tests
 - remake timer (now can be delayed)
 - Maybe save all bids in PG in the end of the auction for stats
 - admin role + middleware to protect some routes 
 - logger
+- form validation with react-hook-form
 
 # Backend
 ## Install and start
@@ -47,7 +48,7 @@ Project works on node v22.11.0, but you can try different versions
 npm i
 ```
 
-Initialise the database:
+Initialise the database
 
 ```sh
 npx prisma migrate deploy
@@ -83,7 +84,7 @@ npm run dev
 
 ## Login
 
-You can login on different computers to test auction
+You can log in on different computers/browsers to test auction
 
 Test users from seeding (email/password):
 ```sh

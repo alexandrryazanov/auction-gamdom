@@ -8,8 +8,10 @@ import {
 } from "@mui/material";
 import { BidsTableProps } from "@/components/BidsTable/types.ts";
 import Typography from "@mui/material/Typography";
+import { useUser } from "@/api/rest/users/me/hook.ts";
 
 const BidsTable = ({ data, isLoading, error }: BidsTableProps) => {
+  const { data: user } = useUser();
   if (!data?.length && !error) return <Typography>No bids</Typography>;
   if (isLoading) return <Typography>Loading...</Typography>;
 
@@ -26,7 +28,9 @@ const BidsTable = ({ data, isLoading, error }: BidsTableProps) => {
                   "&:first-child td": { color: "#00cc00" },
                 }}
               >
-                <TableCell align="left">{bid.email}</TableCell>
+                <TableCell align="left">
+                  {bid.email === user?.email ? "You" : bid.email}
+                </TableCell>
                 <TableCell align="right">{bid.value}</TableCell>
               </TableRow>
             ))}
