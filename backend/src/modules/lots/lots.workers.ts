@@ -43,7 +43,7 @@ export class LotsWorkers {
   }
 
   async addLotToEndWorker(lot: Lot) {
-    console.log("Ending worker init for", lot.id);
+    console.log("Ending job init for", lot.id);
     const lotsQueue = new Queue("lots-queue", {
       connection: REDIS_CONFIGURATION,
     });
