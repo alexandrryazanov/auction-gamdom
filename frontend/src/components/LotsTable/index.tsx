@@ -21,7 +21,7 @@ const LotsTable = () => {
 
   const onLotClick = (lotId: number) => {
     if (!user) {
-      toast("You have to be log in!", { type: "error" });
+      toast("You have to be logged in!", { type: "error" });
       return;
     }
     setSelectedLotId(lotId);

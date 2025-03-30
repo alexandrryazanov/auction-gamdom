@@ -12,8 +12,18 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router";
 import LoginPage from "@/pages/login.tsx";
 import { ToastContainer } from "react-toastify";
+import { NO_TOKEN_ERROR_MESSAGE } from "@/api/rest/auth/constants.ts";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error) => {
+        if (error.message === NO_TOKEN_ERROR_MESSAGE) return false; // disable repeats
+        return failureCount < 3;
+      },
+    },
+  },
+});
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

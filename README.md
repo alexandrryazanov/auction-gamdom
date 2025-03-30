@@ -3,14 +3,17 @@
 ## What is implemented
 - Custom architecture with services/controllers and OOP principles
 - Postgres DB for storing users and lots
+- Prisma ORM
 - Redis for storing bids
 - bullMQ for creating queues for every lot
 - socket.io for real-time bids updates
+- hashed passwords + salt for users
 - JWT auth with access/refresh tokens
+- Middleware for routes + handshake checking for auth check
 - Body/params/query validation with Joi
 - Custom API structure on frontend with react-query (API folder)
 - MUI lib interface
-- Axios interceptors for auth/not-auth users + invisible token refresh
+- Axios interceptors for auth/non-auth users + invisible token refresh
 - Custom hook for interaction with sockets
 
 ## What is needed to add
@@ -18,8 +21,9 @@
 - some error handlers/descriptions
 - tests
 - remake timer (now can be delayed)
-- Maybe save all bids in PG in the end of auction for stats
+- Maybe save all bids in PG in the end of the auction for stats
 - admin role + middleware to protect some routes 
+- logger
 
 # Backend
 ## Install and start

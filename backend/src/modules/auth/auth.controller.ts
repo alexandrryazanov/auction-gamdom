@@ -1,6 +1,6 @@
 import { AuthService } from "@/modules/auth/auth.service";
 import { Request, Response, Router } from "express";
-import { EXPIRES_IN } from "@/modules/auth/auth.constants";
+import { COOKIE_OPTIONS, EXPIRES_IN } from "@/modules/auth/auth.constants";
 import ms from "ms";
 import { RegisterDto, registerSchema } from "@/modules/auth/dto/register.dto";
 import { validateMiddleware } from "@/middlewares/validateMiddleware";
@@ -41,28 +41,21 @@ export class AuthController {
 
   login = async (request: Request, response: Response) => {
     const dto = request.body as LoginDto;
-    const result = await this.authService.login(dto);
-    response.send(result);
+    const { accessToken, refreshToken } = await this.authService.login(dto);
+    response.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
+    response.send({ accessToken });
   };
 
   refresh = async (request: Request, response: Response) => {
     const { accessToken, refreshToken } = await this.authService.refresh(
       request.cookies.refreshToken,
     );
-    response.cookie("refreshToken", refreshToken, {
-      maxAge: ms(EXPIRES_IN.REFRESH),
-      httpOnly: true,
-      secure: false, // TODO: add for prod
-    });
-    response.send({ token: accessToken });
+    response.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
+    response.send({ accessToken });
   };
 
   logout = async (request: Request, response: Response) => {
-    response.clearCookie("refreshToken", {
-      maxAge: ms(EXPIRES_IN.REFRESH),
-      httpOnly: true,
-      secure: false, // TODO: add for prod
-    });
+    response.clearCookie("refreshToken", COOKIE_OPTIONS);
     response.send({});
   };
 }

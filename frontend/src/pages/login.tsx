@@ -24,6 +24,8 @@ const LoginPage = () => {
     login(data);
   };
 
+  console.log("serverError", serverError);
+
   return (
     <Box
       sx={{
