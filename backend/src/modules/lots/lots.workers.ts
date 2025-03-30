@@ -26,8 +26,14 @@ export class LotsWorkers {
     new Worker(
       `lot-${lot.id}`,
       async (bid) => {
-        const { value, userId, socketId } = bid.data;
-        await this.bidsService.placeBid({ value, userId, lot, socketId });
+        const { value, userId, socketId, email } = bid.data;
+        await this.bidsService.placeBid({
+          value,
+          userId,
+          lot,
+          socketId,
+          email,
+        });
       },
       { connection: REDIS_CONFIGURATION },
     );

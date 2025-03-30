@@ -26,7 +26,7 @@ const BidsTable = ({ data, isLoading, error }: BidsTableProps) => {
                   "&:first-child td": { color: "#00cc00" },
                 }}
               >
-                <TableCell align="right">{bid.userId}</TableCell>
+                <TableCell align="left">{bid.email}</TableCell>
                 <TableCell align="right">{bid.value}</TableCell>
               </TableRow>
             ))}

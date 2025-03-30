@@ -5,11 +5,13 @@ import { Lot } from "@prisma/client";
 export class BidsService {
   async placeBid({
     userId,
+    email,
     value,
     lot,
     socketId,
   }: {
     userId: number;
+    email: string;
     value: number;
     lot: Lot;
     socketId: string;
@@ -20,9 +22,12 @@ export class BidsService {
     const lotBids = JSON.parse(lotBidsString || "[]") as {
       value: number;
       userId: number;
+      email: string;
     }[];
     if (userId === lotBids[0]?.userId) {
-      io?.to(socketId).emit("error", "Cannot bid twice");
+      io
+        ?.to(socketId)
+        .emit("error", "Cannot bid twice. Wait for another user's bid");
       return;
     }
 
@@ -41,7 +46,7 @@ export class BidsService {
       return;
     }
 
-    const updatedBids = [{ userId, value }, ...lotBids];
+    const updatedBids = [{ userId, email, value }, ...lotBids];
 
     await redisClient.set(lotName, JSON.stringify(updatedBids));
     io?.to(String(lot.id)).emit("bid:placed", updatedBids);

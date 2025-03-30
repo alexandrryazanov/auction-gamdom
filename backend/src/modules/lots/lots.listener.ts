@@ -17,7 +17,15 @@ export class LotsListener implements ExpressListener {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY || "");
+      const user = await prismaClient.user.findUnique({
+        where: { id: Number(decoded.sub) },
+      });
+      if (!user) {
+        socket.emit("error", "No such user");
+        return;
+      }
       socket["userId"] = decoded.sub;
+      socket["email"] = user.email;
     } catch (e) {
       socket.emit("error", "Wrong token!");
       return;
@@ -53,6 +61,7 @@ export class LotsListener implements ExpressListener {
     const lotBids = JSON.parse(lotBidsString || "[]") as {
       value: number;
       userId: number;
+      email: string;
     }[];
     socket.emit("bid:placed", lotBids);
 
