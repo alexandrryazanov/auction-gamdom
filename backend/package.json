@@ -2,7 +2,8 @@
   "name": "be",
   "version": "1.0.0",
   "scripts": {
-    "dev": "nodemon"
+    "dev": "nodemon",
+    "seed": "ts-node -r tsconfig-paths/register src/scripts/init-seed.ts"
   },
   "keywords": [],
   "author": "Alex Riazanov",
