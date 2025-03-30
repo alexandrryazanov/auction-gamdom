@@ -6,9 +6,12 @@ import { BidsService } from "@/modules/bids/bids.service";
 import { io } from "@/modules/sockets/sockets.client";
 
 export class LotsWorkers {
+  private endLotWorker: Worker | null = null;
   constructor(private readonly bidsService: BidsService) {}
 
   async initAllWorkers() {
+    this.initEndWorker();
+
     const lots = await prismaClient.lot.findMany({
       where: { status: Status.OPEN },
     });
@@ -17,12 +20,12 @@ export class LotsWorkers {
 
     for (const lot of lots) {
       await this.addBidsWorker(lot);
-      await this.addEndWorker(lot);
+      await this.addLotToEndWorker(lot);
     }
   }
 
   async addBidsWorker(lot: Lot) {
-    console.log("Worker init for", lot.id);
+    console.log("Bids worker init for", lot.id);
     new Worker(
       `lot-${lot.id}`,
       async (bid) => {
@@ -39,24 +42,39 @@ export class LotsWorkers {
     );
   }
 
-  async addEndWorker(lot: Lot) {
+  async addLotToEndWorker(lot: Lot) {
+    console.log("Ending worker init for", lot.id);
     const lotsQueue = new Queue("lots-queue", {
       connection: REDIS_CONFIGURATION,
     });
 
-    await lotsQueue.add(
-      "end-lot",
-      { lotId: lot.id },
-      {
-        delay: lot.timeInSec * 1000,
-        jobId: `end-${lot.id}`,
-      },
+    const currentDuration = Math.floor(
+      (new Date().getTime() - new Date(lot.createdAt).getTime()) / 1000,
     );
+    const timeLeft = lot.timeInSec - currentDuration;
 
-    new Worker(
+    try {
+      await lotsQueue.remove(`end-lot-${lot.id}`); // if exists
+      await lotsQueue.add(
+        `end-lot-${lot.id}`,
+        { lotId: lot.id },
+        {
+          delay: (timeLeft < 0 ? 0 : timeLeft) * 1000,
+          jobId: `end-lot-${lot.id}`,
+        },
+      );
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  private initEndWorker() {
+    console.log("End worker init");
+    this.endLotWorker = new Worker(
       "lots-queue",
       async (job) => {
         const { lotId } = job.data;
+        console.log("Start ending lot", lotId);
 
         // Calc the winner
         const lotName = `lot-${lotId}`;

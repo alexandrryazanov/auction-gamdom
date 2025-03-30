@@ -57,7 +57,7 @@ export class LotsService {
     });
 
     await this.lotsWorkers.addBidsWorker(lot);
-    await this.lotsWorkers.addEndWorker(lot);
+    await this.lotsWorkers.addLotToEndWorker(lot);
 
     return lot;
   }

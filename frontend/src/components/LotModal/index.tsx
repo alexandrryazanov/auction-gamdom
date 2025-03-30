@@ -59,6 +59,7 @@ export default function LotModal({ lotId, setLotId }: LotModalProps) {
 
     if (Number(value) <= 0) {
       toast("Enter correct bid", { type: "error" });
+      return;
     }
 
     emit("bid", { value });
@@ -111,27 +112,29 @@ export default function LotModal({ lotId, setLotId }: LotModalProps) {
             {!isClosed && !winner ? (
               <>
                 <BidsTable data={bids} error={error} isLoading={false} />
-                <form onSubmit={onSubmit}>
-                  <Box sx={{ mt: 3, flex: 1, display: "flex", gap: 1 }}>
-                    <TextField
-                      sx={{ width: "100%" }}
-                      type="number"
-                      variant="outlined"
-                      size="small"
-                      value={value}
-                      onChange={(e) => setValue(e.target.value)}
-                      placeholder={"Your bid in cents"}
-                    />
-                    <Button
-                      variant={"contained"}
-                      type={"submit"}
-                      sx={{ minWidth: 130 }}
-                      disabled={value.length === 0}
-                    >
-                      Place bid
-                    </Button>
-                  </Box>
-                </form>
+                {timeLeft > 0 && (
+                  <form onSubmit={onSubmit}>
+                    <Box sx={{ mt: 3, flex: 1, display: "flex", gap: 1 }}>
+                      <TextField
+                        sx={{ width: "100%" }}
+                        type="number"
+                        variant="outlined"
+                        size="small"
+                        value={value}
+                        onChange={(e) => setValue(e.target.value)}
+                        placeholder={"Your bid in cents"}
+                      />
+                      <Button
+                        variant={"contained"}
+                        type={"submit"}
+                        sx={{ minWidth: 130 }}
+                        disabled={value.length === 0}
+                      >
+                        Place bid
+                      </Button>
+                    </Box>
+                  </form>
+                )}
               </>
             ) : (
               <Typography color={"success"}>
