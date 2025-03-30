@@ -1,5 +1,5 @@
-import { GET_LOTS_PATH } from "./constants";
-import { Lot } from "./types";
+import { GET_LOTS_PATH } from "../constants.ts";
+import { Lot } from "../types.ts";
 import { baseApiClient } from "@/api/instances/base";
 
 export async function getAllLots({

@@ -3,10 +3,25 @@ import prismaClient from "@/modules/prisma/prisma.client";
 import { Status } from "@prisma/client";
 import { ExpressListener } from "@/types/listener";
 import redisClient from "@/modules/redis/redis.client";
+import jwt from "jsonwebtoken";
 
 export class LotsListener implements ExpressListener {
   async register(io: Server, socket: Socket) {
     const { lotId } = socket.handshake.query as { lotId: string };
+    const token: string | undefined = socket.handshake.auth.token;
+
+    if (!token) {
+      socket.emit("error", "You are not logged in!");
+      return;
+    }
+
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY || "");
+      socket["userId"] = decoded.sub;
+    } catch (e) {
+      socket.emit("error", "Wrong token!");
+      return;
+    }
 
     if (!lotId) {
       socket.emit("error", "Specify lotId");

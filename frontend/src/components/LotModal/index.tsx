@@ -9,7 +9,9 @@ import Button from "@mui/material/Button";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { io as socketIO, Socket } from "socket.io-client";
 import BidsTable from "@/components/BidsTable";
-import { Bid } from "@/api/rest/lots/types.ts";
+import { Bid, Status } from "@/api/rest/lots/types.ts";
+import { useLot } from "@/api/rest/lots/one/hook.ts";
+import { TOKEN_KEY } from "@/constants/localStorage.ts";
 
 const style = {
   position: "absolute",
@@ -23,6 +25,7 @@ const style = {
 };
 
 export default function LotModal({ lotId, setLotId }: LotModalProps) {
+  const { data } = useLot({ id: lotId });
   const socket = useRef<Socket | null>(null);
   const [bids, setBids] = useState<Bid[]>([]);
   const [error, setError] = useState("");
@@ -30,16 +33,16 @@ export default function LotModal({ lotId, setLotId }: LotModalProps) {
 
   const handleClose = () => setLotId(null);
 
+  // TODO: create separated hook for sockets
   useEffect(() => {
-    if (!lotId) return;
+    if (!lotId || !data) return;
 
     socket.current = socketIO(import.meta.env.VITE_BACKEND_BASE_URL, {
       path: "/ws",
       transports: ["websocket"],
       reconnectionDelayMax: 10000,
-      query: {
-        lotId: lotId,
-      },
+      query: { lotId },
+      auth: { token: localStorage.getItem(TOKEN_KEY) },
     });
 
     socket.current.on("connect", () => {
@@ -54,11 +57,11 @@ export default function LotModal({ lotId, setLotId }: LotModalProps) {
       setError("");
       socket.current?.disconnect();
     };
-  }, [lotId]);
+  }, [lotId, data]);
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
-    socket.current?.emit("bid", { userId: 1, value });
+    socket.current?.emit("bid", { value });
     setError("");
   };
 
@@ -85,31 +88,33 @@ export default function LotModal({ lotId, setLotId }: LotModalProps) {
               component="h2"
               sx={{ mb: 2 }}
             >
-              Bids for lot {lotId}
+              Bids for lot {data?.name || ""}
             </Typography>
 
             <BidsTable data={bids} error={error} isLoading={false} />
 
-            <form onSubmit={onSubmit}>
-              <Box sx={{ mt: 3, flex: 1, display: "flex", gap: 1 }}>
-                <TextField
-                  sx={{ width: "100%" }}
-                  type="number"
-                  variant="outlined"
-                  size="small"
-                  value={value}
-                  onChange={(e) => setValue(e.target.value)}
-                  placeholder={"Your Bid In cents"}
-                />
-                <Button
-                  variant={"contained"}
-                  type={"submit"}
-                  sx={{ minWidth: 130 }}
-                >
-                  Place bid
-                </Button>
-              </Box>
-            </form>
+            {(!data || data?.status !== Status.CLOSED) && (
+              <form onSubmit={onSubmit}>
+                <Box sx={{ mt: 3, flex: 1, display: "flex", gap: 1 }}>
+                  <TextField
+                    sx={{ width: "100%" }}
+                    type="number"
+                    variant="outlined"
+                    size="small"
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                    placeholder={"Your Bid In cents"}
+                  />
+                  <Button
+                    variant={"contained"}
+                    type={"submit"}
+                    sx={{ minWidth: 130 }}
+                  >
+                    Place bid
+                  </Button>
+                </Box>
+              </form>
+            )}
           </Box>
         </Fade>
       </Modal>

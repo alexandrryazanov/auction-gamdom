@@ -1,4 +1,4 @@
-import { useLots } from "@/api/rest/lots/hook.ts";
+import { useLots } from "@/api/rest/lots/all/hook.ts";
 import {
   Paper,
   Table,
@@ -35,8 +35,8 @@ const LotsTable = () => {
             <TableRow>
               <TableCell align="right">id</TableCell>
               <TableCell align="right">name</TableCell>
+              <TableCell align="right">status</TableCell>
               <TableCell align="right">createdAt</TableCell>
-              <TableCell align="right">updatedAt</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -48,8 +48,8 @@ const LotsTable = () => {
               >
                 <TableCell align="right">{lot.id}</TableCell>
                 <TableCell align="right">{lot.name}</TableCell>
+                <TableCell align="right">{lot.status}</TableCell>
                 <TableCell align="right">{lot.createdAt}</TableCell>
-                <TableCell align="right">{lot.updatedAt}</TableCell>
               </TableRow>
             ))}
           </TableBody>

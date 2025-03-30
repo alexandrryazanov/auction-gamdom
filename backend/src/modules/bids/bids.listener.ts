@@ -5,7 +5,9 @@ import { getBidsQueue } from "@/modules/bids/bids.utils";
 
 export class BidsListener implements ExpressListener {
   register(io: Server, socket: Socket) {
-    socket.on("bid", (data) => this.onPlaceBid(socket, data));
+    socket.on("bid", (data) =>
+      this.onPlaceBid(socket, { ...data, userId: socket["userId"] }),
+    );
   }
 
   private async onPlaceBid(socket: Socket, data: Omit<PlaceBidDto, "lotId">) {
