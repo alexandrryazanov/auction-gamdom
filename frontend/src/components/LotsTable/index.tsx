@@ -33,20 +33,23 @@ const LotsTable = () => {
         <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
           <TableHead>
             <TableRow>
-              <TableCell align="right">id</TableCell>
-              <TableCell align="right">name</TableCell>
-              <TableCell align="right">status</TableCell>
-              <TableCell align="right">createdAt</TableCell>
+              <TableCell align="left">ID</TableCell>
+              <TableCell align="right">Name</TableCell>
+              <TableCell align="right">Status</TableCell>
+              <TableCell align="right">Created At</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {data.map((lot) => (
               <TableRow
                 key={lot.id}
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                sx={{
+                  "&:last-child td, &:last-child th": { border: 0 },
+                  cursor: "pointer",
+                }}
                 onClick={() => onLotClick(lot.id)}
               >
-                <TableCell align="right">{lot.id}</TableCell>
+                <TableCell align="left">{lot.id}</TableCell>
                 <TableCell align="right">{lot.name}</TableCell>
                 <TableCell align="right">{lot.status}</TableCell>
                 <TableCell align="right">{lot.createdAt}</TableCell>
