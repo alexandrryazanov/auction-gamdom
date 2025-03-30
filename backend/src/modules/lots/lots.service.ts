@@ -3,18 +3,12 @@ import {
   BadRequestException,
   NotFoundException,
 } from "@/exceptions/HttpException";
-import { Lot, Status } from "@prisma/client";
+import { Status } from "@prisma/client";
 import { LotCreateDto } from "@/modules/lots/dto/lot-create.dto";
 import { LotGetAllDto } from "@/modules/lots/dto/lot-get-all.dto";
 import { LotUpdateDto } from "@/modules/lots/dto/lot-update.dto";
-import { Queue, Worker } from "bullmq";
-import { REDIS_CONFIGURATION } from "@/modules/redis/redis.client";
-import { BidsService } from "@/modules/bids/bids.service";
-import { io } from "@/modules/sockets/sockets.client";
 
 export class LotsService {
-  constructor(private readonly bidsService: BidsService) {}
-
   async getAll({ limit = 10, offset = 0 }: LotGetAllDto) {
     return prismaClient.lot.findMany({
       take: limit,
@@ -36,7 +30,7 @@ export class LotsService {
   }
 
   async create(dto: LotCreateDto) {
-    const lot = await prismaClient.lot.create({
+    return prismaClient.lot.create({
       data: {
         startPriceInCents: dto.startPriceInCents,
         minPriceStep: dto.minPriceStep,
@@ -45,62 +39,6 @@ export class LotsService {
         timeInSec: dto.timeInSec,
       },
     });
-
-    await this.addEndWorker(lot);
-    this.addBidsWorker(lot);
-
-    return lot;
-  }
-
-  private async addEndWorker(lot: Lot) {
-    const lotsQueue = new Queue("lots-queue", {
-      connection: REDIS_CONFIGURATION,
-    });
-
-    await lotsQueue.add(
-      "end-lot",
-      { lotId: lot.id },
-      {
-        delay: lot.timeInSec * 1000, // ⏰ через 5 минут
-        jobId: `end-${lot.id}`,
-      },
-    );
-
-    new Worker(
-      "lots-queue",
-      async (job) => {
-        const { lotId } = job.data;
-
-        const updated = await prismaClient.lot.updateMany({
-          where: {
-            id: lotId,
-            status: Status.OPEN,
-          },
-          data: {
-            status: Status.CLOSED,
-          },
-        });
-
-        if (updated.count > 0) {
-          console.log(`Lot ${lotId} is finished.`);
-          io?.to(String(lotId)).emit(`lot:ended`);
-        } else {
-          console.log(`Lot ${lotId} is already finished.`);
-        }
-      },
-      { connection: REDIS_CONFIGURATION },
-    );
-  }
-
-  addBidsWorker(lot: Lot) {
-    new Worker(
-      `lot-${lot.id}`,
-      async (bid) => {
-        const { value, userId } = bid.data;
-        await this.bidsService.placeBid({ value, userId, lot });
-      },
-      { connection: REDIS_CONFIGURATION },
-    );
   }
 
   async updateById(id: number, dto: LotUpdateDto) {

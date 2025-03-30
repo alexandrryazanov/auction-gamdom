@@ -1,6 +1,7 @@
 import { ExpressController } from "@/types/controller";
 import { Request, Response, Router } from "express";
 import { UsersService } from "@/modules/users/users.service";
+import authMiddleware from "@/middlewares/authMiddleware";
 
 export class UsersController implements ExpressController {
   public path = "/users";
@@ -15,11 +16,12 @@ export class UsersController implements ExpressController {
   }
 
   initRoutes() {
-    this.router.get("/", this.getAll);
+    this.router.get("/me", authMiddleware, this.getMe);
   }
 
-  getAll = async (request: Request, response: Response) => {
-    const result = await this.usersService.getAll();
+  getMe = async (request: Request, response: Response) => {
+    const { userId } = request as Request & { userId: number };
+    const result = await this.usersService.getById(userId);
     response.send(result);
   };
 }

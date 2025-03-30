@@ -13,7 +13,7 @@ import LotModal from "@/components/LotModal";
 
 const LotsTable = () => {
   const [selectedLotId, setSelectedLotId] = useState<number | null>(null);
-  const { data } = useLots({ limit: 10, offset: 0 });
+  const { data } = useLots({ limit: 10, offset: 0 }); // TODO: add pagination handle
   if (!data) return null;
 
   return (

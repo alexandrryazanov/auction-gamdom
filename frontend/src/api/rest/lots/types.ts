@@ -4,3 +4,9 @@ export interface Lot {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface Bid {
+  userId: number;
+  email: string;
+  value: number;
+}

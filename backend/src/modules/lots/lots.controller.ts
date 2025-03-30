@@ -15,6 +15,7 @@ import {
   LotUpdateDto,
   lotUpdateSchema,
 } from "@/modules/lots/dto/lot-update.dto";
+import authMiddleware from "@/middlewares/authMiddleware";
 
 export class LotsController implements ExpressController {
   public path = "/lots";
@@ -36,9 +37,12 @@ export class LotsController implements ExpressController {
     );
     this.router.get(
       "/:id",
+      authMiddleware,
       validateMiddleware({ params: lotGetOneSchema }),
       this.getById,
     );
+
+    // TODO: protect by admin middleware
     this.router.post(
       "/",
       validateMiddleware({ body: lotCreateSchema }),

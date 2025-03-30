@@ -2,13 +2,13 @@ import prismaClient from "@/modules/prisma/prisma.client";
 import { BadRequestException } from "@/exceptions/HttpException";
 
 export class UsersService {
-  async getAll() {
-    const users = await prismaClient.user.findMany();
+  async getById(id: number) {
+    const user = await prismaClient.user.findUnique({ where: { id } });
 
-    if (users.length === 0) {
-      throw new BadRequestException("No users found");
+    if (!user) {
+      throw new BadRequestException("No such user");
     }
 
-    return users;
+    return user;
   }
 }

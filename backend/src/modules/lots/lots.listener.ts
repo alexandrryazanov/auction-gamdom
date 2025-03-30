@@ -2,6 +2,7 @@ import { Server, Socket } from "socket.io";
 import prismaClient from "@/modules/prisma/prisma.client";
 import { Status } from "@prisma/client";
 import { ExpressListener } from "@/types/listener";
+import redisClient from "@/modules/redis/redis.client";
 
 export class LotsListener implements ExpressListener {
   async register(io: Server, socket: Socket) {
@@ -17,13 +18,12 @@ export class LotsListener implements ExpressListener {
       socket.emit("error", "No such lotId");
       return;
     }
-
     const currentDuration = Date.now() - new Date(lot.createdAt).getTime();
     const timeLeft = lot.timeInSec * 1000 - currentDuration;
 
     if (lot.status === Status.CLOSED || timeLeft <= 0) {
       socket.emit("error", "Lot is closed");
-      io?.close();
+      socket.disconnect();
       return;
     }
 
@@ -31,6 +31,15 @@ export class LotsListener implements ExpressListener {
     socket.join(lotId);
     socket.emit("lot", { ...lot, timeLeft });
     io.to(lotId).emit("user:connected", {});
+
+    // send all bids
+    const lotName = `lot-${lot.id}`;
+    const lotBidsString = await redisClient?.get(lotName);
+    const lotBids = JSON.parse(lotBidsString || "[]") as {
+      value: number;
+      userId: number;
+    }[];
+    socket.emit("bid:placed", lotBids);
 
     socket.on("disconnect", () => {
       socket.leave(lotId);

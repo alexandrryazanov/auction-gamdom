@@ -5,13 +5,15 @@ import { getBidsQueue } from "@/modules/bids/bids.utils";
 
 export class BidsListener implements ExpressListener {
   register(io: Server, socket: Socket) {
-    socket.on("bid:place", (data) => this.onPlaceBid(socket, data));
+    socket.on("bid", (data) => this.onPlaceBid(socket, data));
   }
 
-  private async onPlaceBid(socket: Socket, data: PlaceBidDto) {
+  private async onPlaceBid(socket: Socket, data: Omit<PlaceBidDto, "lotId">) {
     try {
-      const bidsQueue = getBidsQueue(data.lotId);
-      await bidsQueue.add("bid", data);
+      const lotId = Number(socket.handshake.query.lotId);
+      const bidsQueue = getBidsQueue(lotId);
+      console.log("Send bid to queue");
+      await bidsQueue.add("bid", { lotId, ...data, socketId: socket.id });
     } catch (e) {
       socket.emit("error", e.message);
     }

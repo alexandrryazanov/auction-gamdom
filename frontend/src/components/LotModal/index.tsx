@@ -1,12 +1,15 @@
 import Backdrop from "@mui/material/Backdrop";
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
+import TextField from "@mui/material/TextField";
 import Fade from "@mui/material/Fade";
 import Typography from "@mui/material/Typography";
 import { LotModalProps } from "./types.ts";
 import Button from "@mui/material/Button";
-import { useEffect } from "react";
-import { io as socketIO } from "socket.io-client";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import { io as socketIO, Socket } from "socket.io-client";
+import BidsTable from "@/components/BidsTable";
+import { Bid } from "@/api/rest/lots/types.ts";
 
 const style = {
   position: "absolute",
@@ -20,12 +23,17 @@ const style = {
 };
 
 export default function LotModal({ lotId, setLotId }: LotModalProps) {
+  const socket = useRef<Socket | null>(null);
+  const [bids, setBids] = useState<Bid[]>([]);
+  const [error, setError] = useState("");
+  const [value, setValue] = useState("");
+
   const handleClose = () => setLotId(null);
 
   useEffect(() => {
     if (!lotId) return;
 
-    const io = socketIO(import.meta.env.VITE_BACKEND_BASE_URL, {
+    socket.current = socketIO(import.meta.env.VITE_BACKEND_BASE_URL, {
       path: "/ws",
       transports: ["websocket"],
       reconnectionDelayMax: 10000,
@@ -34,15 +42,25 @@ export default function LotModal({ lotId, setLotId }: LotModalProps) {
       },
     });
 
-    io.on("connect", () => {
-      io.on("error", console.log);
-      io.on("lot", console.log);
+    socket.current.on("connect", () => {
+      socket.current?.on("error", setError);
+      socket.current?.on("lot", console.log);
+      socket.current?.on("bid:placed", setBids);
+      socket.current?.on("lot:ended", console.log);
     });
 
-    // return () => {
-    //   io.disconnect();
-    // };
+    return () => {
+      setBids([]);
+      setError("");
+      socket.current?.disconnect();
+    };
   }, [lotId]);
+
+  const onSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    socket.current?.emit("bid", { userId: 1, value });
+    setError("");
+  };
 
   return (
     <div>
@@ -61,15 +79,37 @@ export default function LotModal({ lotId, setLotId }: LotModalProps) {
       >
         <Fade in={!!lotId}>
           <Box sx={style}>
-            <Typography id="transition-modal-title" variant="h6" component="h2">
+            <Typography
+              id="transition-modal-title"
+              variant="h6"
+              component="h2"
+              sx={{ mb: 2 }}
+            >
               Bids for lot {lotId}
             </Typography>
-            <Typography id="transition-modal-description" sx={{ mt: 2 }}>
-              Bids
-            </Typography>
-            <Button sx={{ mt: 3 }} variant={"contained"}>
-              Place bid
-            </Button>
+
+            <BidsTable data={bids} error={error} isLoading={false} />
+
+            <form onSubmit={onSubmit}>
+              <Box sx={{ mt: 3, flex: 1, display: "flex", gap: 1 }}>
+                <TextField
+                  sx={{ width: "100%" }}
+                  type="number"
+                  variant="outlined"
+                  size="small"
+                  value={value}
+                  onChange={(e) => setValue(e.target.value)}
+                  placeholder={"Your Bid In cents"}
+                />
+                <Button
+                  variant={"contained"}
+                  type={"submit"}
+                  sx={{ minWidth: 130 }}
+                >
+                  Place bid
+                </Button>
+              </Box>
+            </form>
           </Box>
         </Fade>
       </Modal>
