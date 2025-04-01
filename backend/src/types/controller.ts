@@ -2,5 +2,5 @@ import { Router } from "express";
 
 export interface ExpressController {
   path: string;
-  getRouter(): Router;
+  router: Router;
 }

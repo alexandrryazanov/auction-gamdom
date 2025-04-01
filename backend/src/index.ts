@@ -19,7 +19,7 @@ app.use(cookieParser());
 
 // handle all controllers
 controllers.forEach((controller) => {
-  app.use(controller.path, controller.getRouter());
+  app.use(controller.path, controller.router);
 });
 
 // handle errors

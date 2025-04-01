@@ -4,11 +4,15 @@ import { UsersService } from "@/modules/users/users.service";
 import authMiddleware from "@/middlewares/authMiddleware";
 
 export class UsersController implements ExpressController {
-  public path = "/users";
-  private router: Router = Router();
+  private _path = "/users";
+  private _router: Router = Router();
 
-  getRouter(): Router {
-    return this.router;
+  get path(): string {
+    return this._path;
+  }
+
+  get router(): Router {
+    return this._router;
   }
 
   constructor(private readonly usersService: UsersService) {

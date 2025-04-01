@@ -1,17 +1,21 @@
 import { AuthService } from "@/modules/auth/auth.service";
 import { Request, Response, Router } from "express";
-import { COOKIE_OPTIONS, EXPIRES_IN } from "@/modules/auth/auth.constants";
-import ms from "ms";
+import { COOKIE_OPTIONS } from "@/modules/auth/auth.constants";
 import { RegisterDto, registerSchema } from "@/modules/auth/dto/register.dto";
 import { validateMiddleware } from "@/middlewares/validateMiddleware";
 import { LoginDto, loginSchema } from "@/modules/auth/dto/login.dto";
+import { ExpressController } from "@/types/controller";
 
-export class AuthController {
-  public path = "/auth";
-  private router: Router = Router();
+export class AuthController implements ExpressController {
+  private _path = "/auth";
+  private _router: Router = Router();
 
-  getRouter(): Router {
-    return this.router;
+  get path(): string {
+    return this._path;
+  }
+
+  get router(): Router {
+    return this._router;
   }
 
   constructor(private readonly authService: AuthService) {

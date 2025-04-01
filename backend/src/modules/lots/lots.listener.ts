@@ -35,7 +35,7 @@ export class LotsListener implements ExpressListener {
       return;
     }
 
-    // connect to them room
+    // connect to the room
     socket.join(lotId);
 
     // send all bids

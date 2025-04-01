@@ -18,11 +18,15 @@ import {
 import authMiddleware from "@/middlewares/authMiddleware";
 
 export class LotsController implements ExpressController {
-  public path = "/lots";
-  private router: Router = Router();
+  private _path = "/lots";
+  private _router: Router = Router();
 
-  getRouter(): Router {
-    return this.router;
+  get path(): string {
+    return this._path;
+  }
+
+  get router(): Router {
+    return this._router;
   }
 
   constructor(private readonly lotsService: LotsService) {

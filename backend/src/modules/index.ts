@@ -9,6 +9,8 @@ import { BidsService } from "@/modules/bids/bids.service";
 import { LotsWorkers } from "@/modules/lots/lots.workers";
 import { AuthService } from "@/modules/auth/auth.service";
 import { AuthController } from "@/modules/auth/auth.controller";
+import { ExpressController } from "@/types/controller";
+import { ExpressListener } from "@/types/listener";
 
 // services and workers
 const usersService = new UsersService();
@@ -20,14 +22,14 @@ const lotsService = new LotsService(lotsWorkers);
 void new LotsWorkers(bidsService).initAllWorkers();
 
 // controllers
-export const controllers = [
+export const controllers: ExpressController[] = [
   new UsersController(usersService),
   new AuthController(authService),
   new LotsController(lotsService),
 ];
 
 // listeners
-export const listeners = [
+export const listeners: ExpressListener[] = [
   new SocketsClient(),
   new LotsListener(),
   new BidsListener(),
