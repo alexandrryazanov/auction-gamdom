@@ -19,11 +19,11 @@ export class UsersController implements ExpressController {
     this.initRoutes();
   }
 
-  initRoutes() {
+  private initRoutes() {
     this.router.get("/me", authMiddleware, this.getMe);
   }
 
-  getMe = async (request: Request, response: Response) => {
+  private getMe = async (request: Request, response: Response) => {
     const { userId } = request as Request & { userId: number };
     const result = await this.usersService.getById(userId);
     response.send(result);

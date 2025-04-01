@@ -22,7 +22,7 @@ export class AuthController implements ExpressController {
     this.initRoutes();
   }
 
-  initRoutes() {
+  private initRoutes() {
     this.router.post(
       "/register",
       validateMiddleware({ body: registerSchema }),
@@ -37,20 +37,20 @@ export class AuthController implements ExpressController {
     this.router.post("/logout", this.logout);
   }
 
-  register = async (request: Request, response: Response) => {
+  private register = async (request: Request, response: Response) => {
     const dto = request.body as RegisterDto;
     const result = await this.authService.register(dto);
     response.send(result);
   };
 
-  login = async (request: Request, response: Response) => {
+  private login = async (request: Request, response: Response) => {
     const dto = request.body as LoginDto;
     const { accessToken, refreshToken } = await this.authService.login(dto);
     response.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
     response.send({ accessToken });
   };
 
-  refresh = async (request: Request, response: Response) => {
+  private refresh = async (request: Request, response: Response) => {
     const { accessToken, refreshToken } = await this.authService.refresh(
       request.cookies.refreshToken,
     );
@@ -58,7 +58,7 @@ export class AuthController implements ExpressController {
     response.send({ accessToken });
   };
 
-  logout = async (request: Request, response: Response) => {
+  private logout = async (request: Request, response: Response) => {
     response.clearCookie("refreshToken", COOKIE_OPTIONS);
     response.send({});
   };

@@ -33,7 +33,7 @@ export class LotsController implements ExpressController {
     this.initRoutes();
   }
 
-  initRoutes() {
+  private initRoutes() {
     this.router.get(
       "/",
       validateMiddleware({ query: lotGetAllSchema }),
@@ -64,30 +64,30 @@ export class LotsController implements ExpressController {
     );
   }
 
-  getAll = async (request: Request, response: Response) => {
+  private getAll = async (request: Request, response: Response) => {
     const dto = request.query as LotGetAllDto;
     const result = await this.lotsService.getAll(dto);
     response.send(result);
   };
 
-  getById = async (request: Request, response: Response) => {
+  private getById = async (request: Request, response: Response) => {
     const result = await this.lotsService.getById(+request.params.id);
     response.send(result);
   };
 
-  create = async (request: Request, response: Response) => {
+  private create = async (request: Request, response: Response) => {
     const dto = request.body as LotCreateDto;
     const result = await this.lotsService.create(dto);
     response.send(result);
   };
 
-  updateById = async (request: Request, response: Response) => {
+  private updateById = async (request: Request, response: Response) => {
     const dto = request.body as LotUpdateDto;
     const result = await this.lotsService.updateById(+request.params.id, dto);
     response.send(result);
   };
 
-  deleteById = async (request: Request, response: Response) => {
+  private deleteById = async (request: Request, response: Response) => {
     const result = await this.lotsService.deleteById(+request.params.id);
     response.send(result);
   };
